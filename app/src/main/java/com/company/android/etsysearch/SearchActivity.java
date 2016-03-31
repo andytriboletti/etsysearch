@@ -49,7 +49,6 @@ public class SearchActivity extends AppCompatActivity {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                //UserFeedback.show( "SearchOnQueryTextSubmit: " + query);
                 Timber.d(query);
                 loadPosts(query);
                 if( ! searchView.isIconified()) {
@@ -61,7 +60,6 @@ public class SearchActivity extends AppCompatActivity {
             }
             @Override
             public boolean onQueryTextChange(String s) {
-                // UserFeedback.show( "SearchOnQueryTextChanged: " + s);
                 Timber.d("query");
                 return false;
             }
@@ -72,19 +70,7 @@ public class SearchActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle item selection
-//        switch (item.getItemId()) {
-//            case R.id.sort_alphabetically:
-//                Timber.d("sort alphabetically");
-//                sortAlphabetically();
-//                return true;
-//            case R.id.sort_by_date:
-//                Timber.d("sort by date");
-//                sortByDate();
-//
-//            default:
-//                return super.onOptionsItemSelected(item);
-  //      }
+
         return false;
    }
 
@@ -97,7 +83,6 @@ public class SearchActivity extends AppCompatActivity {
                     String url = "https://api.etsy.com/v2/listings/active?api_key=" + API_KEY + "&includes=MainImage&keywords=" + query;
                     String response = SearchActivity.this.run(url);
                     Timber.d(response);
-                    // myListView = (ListView) findViewById(R.id.listView);
                     JSONObject jsonObject = new JSONObject(response);
                     JSONArray results = jsonObject.getJSONArray("results");
                 myListings = new ArrayList<Listing>();
