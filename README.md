@@ -1,2 +1,2 @@
 # etsysearch
-![Screenshot](andytriboletti.github.com/etsysearch/img/screenshot.jpg)
+![Screenshot](https://github.com/andytriboletti/etsysearch/blob/master/img/screenshot.png)
