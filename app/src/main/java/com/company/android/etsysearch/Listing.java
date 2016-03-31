@@ -1,8 +1,6 @@
 package com.company.android.etsysearch;
 
-/**
- * Created by andytriboletti on 3/31/16.
- */
+
 public class Listing {
     String title;
     String image;
