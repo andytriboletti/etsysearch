@@ -50,6 +50,7 @@ public class SearchActivity extends AppCompatActivity {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 Timber.d(query);
+                adapter=null;
                 loadPosts(query);
                 if( ! searchView.isIconified()) {
 
