@@ -6,6 +6,7 @@ import timber.log.Timber;
 
 
 public class App extends Application {
+    public static Listing currentListing;
 
     @Override
     public void onCreate() {

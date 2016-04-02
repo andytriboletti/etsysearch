@@ -2,13 +2,17 @@ package com.company.android.etsysearch;
 
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,14 +30,31 @@ public class SearchActivity extends AppCompatActivity {
     OkHttpClient client;
     ListingAdapter adapter;
     ListView myListView;
-    ArrayList<Listing> myListings;
+    ArrayList<Listing> myListings = new ArrayList<Listing>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
         client = new OkHttpClient();
-        myListView = (ListView) findViewById(R.id.listView);
+        adapter = getAdapter();
+        myListView = (ListView) findViewById(android.R.id.list);
+        myListView.setAdapter(adapter);
+
+        myListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int i, long id) {
+                Timber.d("clicked " + i);
+                Listing thisListing = myListings.get(i);
+                Timber.d("going to item: " + thisListing.getTitle());
+                App.currentListing = thisListing;
+                Intent intent = new Intent(SearchActivity.this, ListingDetail.class);
+                startActivity(intent);
+
+            }
+
+        });
+
 
     }
 
@@ -51,7 +72,7 @@ public class SearchActivity extends AppCompatActivity {
             public boolean onQueryTextSubmit(String query) {
                 Timber.d(query);
                 setTitle(query);
-                adapter=null;
+                //adapter=null;
                 loadPosts(query);
                 if( ! searchView.isIconified()) {
 
@@ -91,19 +112,21 @@ public class SearchActivity extends AppCompatActivity {
             for (int i = 0; i < results.length(); i++) {
                 JSONObject row = results.getJSONObject(i);
                 String title = row.getString("title");
+                String description = row.getString("description");
                 JSONObject mainImage = row.getJSONObject("MainImage");
                 String image = mainImage.getString("url_fullxfull");
-                Listing myListing = new Listing(title, image);
+                Listing myListing = new Listing(title, image, description);
                 myListings.add(myListing);
             }
 
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            adapter = getAdapter();
+                            //adapter.notifyDataSetChanged();
+                            adapter=null;
+                            myListView.setAdapter(getAdapter());
 
 
-                            myListView.setAdapter(adapter);
 
                         }
                     });
@@ -135,14 +158,11 @@ public class SearchActivity extends AppCompatActivity {
     }
 
     public ListingAdapter getAdapter() {
-        ListingAdapter p;
         if(adapter == null) {
-            p = new ListingAdapter(SearchActivity.this, R.layout.row, myListings);
+            adapter = new ListingAdapter(SearchActivity.this, R.layout.row, myListings);
         }
-        else {
-            p = adapter;
-        }
-        return p;
+
+        return adapter;
     }
 }
 
