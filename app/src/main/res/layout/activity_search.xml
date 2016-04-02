@@ -16,5 +16,10 @@
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
    />
-    
+
+    <TextView android:id="@android:id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:text="@string/enter_a_search_to_begin" />
 </RelativeLayout>

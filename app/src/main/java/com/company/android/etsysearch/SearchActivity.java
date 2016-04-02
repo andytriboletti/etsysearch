@@ -7,8 +7,10 @@ import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -17,6 +19,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import butterknife.Bind;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -28,7 +31,7 @@ public class SearchActivity extends AppCompatActivity {
     private ListView listView;
     private ArrayList<Listing> myListings = new ArrayList<Listing>();
     private String query;
-
+    private TextView emptyView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,7 +40,8 @@ public class SearchActivity extends AppCompatActivity {
         adapter = getAdapter();
         listView = (ListView) findViewById(android.R.id.list);
         listView.setAdapter(adapter);
-
+        emptyView = (TextView) findViewById(android.R.id.empty);
+        listView.setEmptyView(emptyView);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int i, long id) {
@@ -51,6 +55,7 @@ public class SearchActivity extends AppCompatActivity {
             }
 
         });
+        emptyView.setVisibility(View.VISIBLE);
 
         listView.setOnScrollListener(new EndlessScrollListener() {
             @Override
@@ -138,6 +143,8 @@ public class SearchActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            emptyView.setVisibility(View.GONE);
+
                             adapter.refill(myListings);
                             adapter.notifyDataSetChanged();
 
