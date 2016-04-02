@@ -1,18 +1,14 @@
 package com.company.android.etsysearch;
 
-import android.app.SearchManager;
-import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,10 +23,11 @@ import okhttp3.Response;
 import timber.log.Timber;
 
 public class SearchActivity extends AppCompatActivity {
-    OkHttpClient client;
-    ListingAdapter adapter;
-    ListView myListView;
-    ArrayList<Listing> myListings = new ArrayList<Listing>();
+    private OkHttpClient client;
+    private ListingAdapter adapter;
+    private ListView listView;
+    private ArrayList<Listing> myListings = new ArrayList<Listing>();
+    private String query;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,10 +35,10 @@ public class SearchActivity extends AppCompatActivity {
         setContentView(R.layout.activity_search);
         client = new OkHttpClient();
         adapter = getAdapter();
-        myListView = (ListView) findViewById(android.R.id.list);
-        myListView.setAdapter(adapter);
+        listView = (ListView) findViewById(android.R.id.list);
+        listView.setAdapter(adapter);
 
-        myListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int i, long id) {
                 Timber.d("clicked " + i);
@@ -55,6 +52,21 @@ public class SearchActivity extends AppCompatActivity {
 
         });
 
+        listView.setOnScrollListener(new EndlessScrollListener() {
+            @Override
+            public boolean onLoadMore(int page, int totalItemsCount) {
+                loadMoreDataFromApi(page);
+                return true;
+            }
+        });
+
+
+    }
+
+    // Append more data into the adapter
+    public void loadMoreDataFromApi(int offset) {
+        Timber.d("load more");
+        loadListings(this.query, offset, false);
 
     }
 
@@ -73,7 +85,9 @@ public class SearchActivity extends AppCompatActivity {
                 Timber.d(query);
                 setTitle(query);
                 //adapter=null;
-                loadPosts(query);
+                SearchActivity.this.query=query;
+                listView.setSelectionAfterHeaderView();
+                loadListings(query, 1, true);
                 if( ! searchView.isIconified()) {
 
                     searchView.setIconified(true);
@@ -97,18 +111,20 @@ public class SearchActivity extends AppCompatActivity {
         return false;
    }
 
-    public void loadPosts(final String query) {
+    public void loadListings(final String query, final int page, final boolean clear) {
         new Thread()
         {
             public void run() {
                 try {
                     String API_KEY = "liwecjs0c3ssk6let4p1wqt9";
-                    String url = "https://api.etsy.com/v2/listings/active?api_key=" + API_KEY + "&includes=MainImage&keywords=" + query;
+                    String url = "https://api.etsy.com/v2/listings/active?api_key=" + API_KEY + "&includes=MainImage&page=" + page + "&keywords=" + query;
                     String response = SearchActivity.this.run(url);
                     Timber.d(response);
                     JSONObject jsonObject = new JSONObject(response);
                     JSONArray results = jsonObject.getJSONArray("results");
-                myListings = new ArrayList<Listing>();
+               if(clear) {
+                   myListings = new ArrayList<Listing>();
+               }
             for (int i = 0; i < results.length(); i++) {
                 JSONObject row = results.getJSONObject(i);
                 String title = row.getString("title");
@@ -122,10 +138,8 @@ public class SearchActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            //adapter.notifyDataSetChanged();
-                            adapter=null;
-                            myListView.setAdapter(getAdapter());
-
+                            adapter.refill(myListings);
+                            adapter.notifyDataSetChanged();
 
 
                         }

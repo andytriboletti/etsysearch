@@ -11,13 +11,16 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class ListingAdapter extends ArrayAdapter<Listing> {
+    private ArrayList<Listing> items;
 
 
     public ListingAdapter(Context context, int textViewResourceId, ArrayList<Listing> items) {
         super(context, textViewResourceId, items);
+        this.items = items;
     }
 
 
@@ -38,5 +41,11 @@ public class ListingAdapter extends ArrayAdapter<Listing> {
 
 
         return convertView;
+    }
+
+    public void refill(List<Listing> listings) {
+        this.items.clear();
+        this.items.addAll(listings);
+        notifyDataSetChanged();
     }
 }
