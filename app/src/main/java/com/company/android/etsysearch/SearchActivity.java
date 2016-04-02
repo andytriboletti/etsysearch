@@ -32,6 +32,8 @@ public class SearchActivity extends AppCompatActivity {
     private ArrayList<Listing> myListings = new ArrayList<Listing>();
     private String query;
     private TextView emptyView;
+    private static String QUERY = "query";
+    private static String LISTINGS = "listings";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,7 +57,6 @@ public class SearchActivity extends AppCompatActivity {
             }
 
         });
-        emptyView.setVisibility(View.VISIBLE);
 
         listView.setOnScrollListener(new EndlessScrollListener() {
             @Override
@@ -184,6 +185,32 @@ public class SearchActivity extends AppCompatActivity {
         }
 
         return adapter;
+    }
+
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(QUERY, this.query);
+        outState.putParcelableArrayList(LISTINGS, myListings);
+
+    }
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        this.query = savedInstanceState.getString(QUERY);
+        this.myListings = savedInstanceState.getParcelableArrayList(LISTINGS);
+
+        if(myListings != null && myListings.size() == 0) {
+            emptyView.setVisibility(View.VISIBLE);
+
+        }
+        else {
+            emptyView.setVisibility(View.GONE);
+            adapter.refill(myListings);
+        }
+
+        if(query != null) {
+            setTitle(query);
+        }
+
     }
 }
 
