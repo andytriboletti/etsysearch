@@ -34,10 +34,12 @@ public class ListingAdapter extends ArrayAdapter<Listing> {
 
         Listing myListing = getItem(position);
         TextView title = (TextView)convertView.findViewById(R.id.titleTextView);
+        TextView price = (TextView)convertView.findViewById(R.id.priceTextView);
         ImageView imageView = (ImageView)convertView.findViewById(R.id.imageView);
         Picasso.with(getContext()).load(myListing.getImage()).into(imageView);
 
         title.setText(myListing.getTitle());
+        price.setText(myListing.getPrice());
 
 
         return convertView;

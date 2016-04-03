@@ -6,6 +6,12 @@
         android:icon="@android:drawable/ic_menu_search"
         app:showAsAction="always"
         app:actionViewClass="android.support.v7.widget.SearchView"
-        android:title="Search"/>
+        android:title="@string/search"/>
+
+
+    <item
+        android:id="@+id/action_filter"
+        app:showAsAction="never"
+        android:title="@string/search_filter"/>
 
 </menu>

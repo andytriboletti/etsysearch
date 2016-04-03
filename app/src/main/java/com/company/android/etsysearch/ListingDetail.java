@@ -21,6 +21,8 @@ import timber.log.Timber;
 public class ListingDetail extends AppCompatActivity {
     @Bind(R.id.titleTextView)
     TextView titleTextView;
+    @Bind(R.id.priceTextView)
+    TextView priceTextView;
     @Bind(R.id.imageView)
     ImageView imageView;
     @Bind(R.id.webView)
@@ -36,7 +38,9 @@ public class ListingDetail extends AppCompatActivity {
         ButterKnife.bind(this);
         String title = listing.getTitle();
         String content = listing.getDescription();
+        String price = listing.getPrice();
         titleTextView.setText(title);
+        priceTextView.setText(price);
         try {
             webView.loadData(URLEncoder.encode(content, "utf-8"), "text/html", "UTF-8");
         } catch (UnsupportedEncodingException e) {

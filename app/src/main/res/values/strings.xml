@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">EtsySearch</string>
     <string name="enter_a_search_to_begin">Search for something in the menu to begin</string>
+    <string name="search">Search</string>
+    <string name="mininum_price">Mininum Price</string>
+    <string name="save">Save</string>
+    <string name="price">Price:</string>
+    <string name="search_filter">Search Filter</string>
 </resources>

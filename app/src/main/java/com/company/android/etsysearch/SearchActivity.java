@@ -1,6 +1,8 @@
 package com.company.android.etsysearch;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.SearchView;
@@ -34,6 +36,9 @@ public class SearchActivity extends AppCompatActivity {
     private TextView emptyView;
     private static String QUERY = "query";
     private static String LISTINGS = "listings";
+    private SharedPreferences prefs;
+    static final int SEARCH_FILTER_CODE = 1;  // The request code
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +47,8 @@ public class SearchActivity extends AppCompatActivity {
         adapter = getAdapter();
         listView = (ListView) findViewById(android.R.id.list);
         listView.setAdapter(adapter);
+        prefs = this.getSharedPreferences(CommonConstants.PREFS, Context.MODE_PRIVATE);
+
         emptyView = (TextView) findViewById(android.R.id.empty);
         listView.setEmptyView(emptyView);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -69,6 +76,31 @@ public class SearchActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+    }
+    public void refresh() {
+        if(query != null) {
+            loadListings(query, 1, true);
+        }
+    }
+    public void refill() {
+        if(myListings != null && myListings.size() == 0) {
+            emptyView.setVisibility(View.VISIBLE);
+
+        }
+        else {
+            emptyView.setVisibility(View.GONE);
+            adapter.refill(myListings);
+            adapter.notifyDataSetChanged();
+        }
+
+        if(query != null) {
+            setTitle(query);
+        }
+    }
     // Append more data into the adapter
     public void loadMoreDataFromApi(int offset) {
         Timber.d("load more");
@@ -113,9 +145,25 @@ public class SearchActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_filter) {
+            Intent intent = new Intent(SearchActivity.this, SearchFilter.class);
+            startActivityForResult(intent, SEARCH_FILTER_CODE);
 
-        return false;
+            return true;
+        }
+
+        return true;
    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == SEARCH_FILTER_CODE) {
+            if (resultCode == RESULT_OK) {
+                refresh();
+            }
+        }
+    }
 
     public void loadListings(final String query, final int page, final boolean clear) {
         new Thread()
@@ -123,7 +171,12 @@ public class SearchActivity extends AppCompatActivity {
             public void run() {
                 try {
                     String API_KEY = "liwecjs0c3ssk6let4p1wqt9";
-                    String url = "https://api.etsy.com/v2/listings/active?api_key=" + API_KEY + "&includes=MainImage&page=" + page + "&keywords=" + query;
+                    String minPriceString = prefs.getString(CommonConstants.MIN_PRICE, "");
+                    String maxPriceString = prefs.getString(CommonConstants.MAX_PRICE, "");
+
+                    String url = "https://api.etsy.com/v2/listings/active?api_key=" + API_KEY +
+                            "&includes=MainImage&page=" + page + "&keywords=" + query + "&min_price=" +
+                            minPriceString + "&max_price=" + maxPriceString;
                     String response = SearchActivity.this.run(url);
                     Timber.d(response);
                     JSONObject jsonObject = new JSONObject(response);
@@ -134,10 +187,11 @@ public class SearchActivity extends AppCompatActivity {
             for (int i = 0; i < results.length(); i++) {
                 JSONObject row = results.getJSONObject(i);
                 String title = row.getString("title");
+                String price = row.getString("price");
                 String description = row.getString("description");
                 JSONObject mainImage = row.getJSONObject("MainImage");
                 String image = mainImage.getString("url_fullxfull");
-                Listing myListing = new Listing(title, image, description);
+                Listing myListing = new Listing(title, image, description, price);
                 myListings.add(myListing);
             }
 
@@ -198,19 +252,10 @@ public class SearchActivity extends AppCompatActivity {
         this.query = savedInstanceState.getString(QUERY);
         this.myListings = savedInstanceState.getParcelableArrayList(LISTINGS);
 
-        if(myListings != null && myListings.size() == 0) {
-            emptyView.setVisibility(View.VISIBLE);
-
-        }
-        else {
-            emptyView.setVisibility(View.GONE);
-            adapter.refill(myListings);
-        }
-
-        if(query != null) {
-            setTitle(query);
-        }
+        refill();
 
     }
+
+
 }
 

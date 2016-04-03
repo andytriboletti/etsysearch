@@ -8,12 +8,13 @@ public class Listing implements Parcelable {
     String title;
     String image;
     String description;
+    String price;
 
-
-    public Listing(String title, String image, String description) {
+    public Listing(String title, String image, String description, String price) {
         this.image = image;
         this.title = title;
         this.description=description;
+        this.price = price;
 
     }
 
@@ -59,6 +60,14 @@ public class Listing implements Parcelable {
         this.description = description;
     }
 
+    public String getPrice() {
+        return price;
+    }
+
+    public void setPrice(String price) {
+        this.price = price;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -69,5 +78,6 @@ public class Listing implements Parcelable {
         dest.writeString(title);
         dest.writeString(image);
         dest.writeString(description);
+        dest.writeString(price);
     }
 }
