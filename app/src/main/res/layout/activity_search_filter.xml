@@ -37,7 +37,7 @@
             android:ems="10"
             android:id="@+id/minPrice"
             android:layout_gravity="center_horizontal"
-            android:hint="@string/mininum_price"/>
+            android:hint="@string/minimum_price"/>
 
     </android.support.design.widget.TextInputLayout>
 
@@ -54,7 +54,7 @@
             android:ems="10"
             android:id="@+id/maxPrice"
             android:layout_gravity="center_horizontal"
-            android:hint="@string/mininum_price"/>
+            android:hint="@string/maxmium_price"/>
 
     </android.support.design.widget.TextInputLayout>
 
