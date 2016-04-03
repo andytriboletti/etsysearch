@@ -175,8 +175,13 @@ public class SearchActivity extends AppCompatActivity {
                     String maxPriceString = prefs.getString(CommonConstants.MAX_PRICE, "");
 
                     String url = "https://api.etsy.com/v2/listings/active?api_key=" + API_KEY +
-                            "&includes=MainImage&page=" + page + "&keywords=" + query + "&min_price=" +
-                            minPriceString + "&max_price=" + maxPriceString;
+                            "&includes=MainImage&page=" + page + "&keywords=" + query;
+                    if(!minPriceString.equals("")) {
+                        url +="&min_price=" + minPriceString;
+                    }
+                    if(!maxPriceString.equals("")) {
+                        url+="&max_price=" + maxPriceString;
+                    }
                     String response = SearchActivity.this.run(url);
                     Timber.d(response);
                     JSONObject jsonObject = new JSONObject(response);
