@@ -20,12 +20,16 @@ import timber.log.Timber;
 
 public class ListingDetail extends AppCompatActivity {
     @Bind(R.id.titleTextView)
+
     TextView titleTextView;
     @Bind(R.id.priceTextView)
+
     TextView priceTextView;
     @Bind(R.id.imageView)
+
     ImageView imageView;
     @Bind(R.id.webView)
+
     WebView webView;
 
     @Override
@@ -52,9 +56,10 @@ public class ListingDetail extends AppCompatActivity {
         setTitle(title);
         Picasso.with(this).load(listing.getImage()).into(imageView);
 
-
-        getSupportActionBar().setHomeButtonEnabled(true);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setHomeButtonEnabled(true);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
     }
 

@@ -14,15 +14,12 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-/**
- * Created by andytriboletti on 4/2/16.
- */
 public class SearchFilter extends AppCompatActivity  {
     @Bind(R.id.minPrice)
     EditText minPrice;
     @Bind(R.id.maxPrice)
     EditText maxPrice;
-    SharedPreferences prefs;
+    private SharedPreferences prefs;
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_ACTION_BAR);
@@ -31,9 +28,10 @@ public class SearchFilter extends AppCompatActivity  {
         ButterKnife.bind(this);
         prefs = this.getSharedPreferences(CommonConstants.PREFS, Context.MODE_PRIVATE);
 
-        getSupportActionBar().setHomeButtonEnabled(true);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setHomeButtonEnabled(true);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
         String minPriceString = prefs.getString(CommonConstants.MIN_PRICE, "");
         minPrice.setText(minPriceString);
 
@@ -52,10 +50,10 @@ public class SearchFilter extends AppCompatActivity  {
 
     @OnClick(R.id.save)
     public void save() {
-        Float minPriceFloat = 0F;
-        Float maxPriceFloat = 0F;
-        String minPriceString = "";
-        String maxPriceString = "";
+        Float minPriceFloat;
+        Float maxPriceFloat;
+        String minPriceString;
+        String maxPriceString;
         try {
             minPriceFloat = Float.valueOf(minPrice.getText().toString());
             minPriceString = String.valueOf(minPriceFloat);

@@ -5,10 +5,10 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Listing implements Parcelable {
-    String title;
-    String image;
-    String description;
-    String price;
+    private String title;
+    private String image;
+    private String description;
+    private String price;
 
     public Listing(String title, String image, String description, String price) {
         this.image = image;
@@ -18,7 +18,7 @@ public class Listing implements Parcelable {
 
     }
 
-    protected Listing(Parcel in) {
+    private Listing(Parcel in) {
         title = in.readString();
         image = in.readString();
         description = in.readString();

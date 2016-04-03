@@ -18,8 +18,8 @@ public class ListingAdapter extends ArrayAdapter<Listing> {
     private ArrayList<Listing> items;
 
 
-    public ListingAdapter(Context context, int textViewResourceId, ArrayList<Listing> items) {
-        super(context, textViewResourceId, items);
+    public ListingAdapter(Context context, ArrayList<Listing> items) {
+        super(context, R.layout.row, items);
         this.items = items;
     }
 

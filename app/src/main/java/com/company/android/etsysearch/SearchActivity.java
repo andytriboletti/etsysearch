@@ -9,7 +9,6 @@ import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -21,7 +20,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import butterknife.Bind;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -34,10 +32,10 @@ public class SearchActivity extends AppCompatActivity {
     private ArrayList<Listing> myListings = new ArrayList<Listing>();
     private String query;
     private TextView emptyView;
-    private static String QUERY = "query";
-    private static String LISTINGS = "listings";
+    private static final String QUERY = "query";
+    private static final String LISTINGS = "listings";
     private SharedPreferences prefs;
-    static final int SEARCH_FILTER_CODE = 1;  // The request code
+    private static final int SEARCH_FILTER_CODE = 1;  // The request code
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +44,9 @@ public class SearchActivity extends AppCompatActivity {
         client = new OkHttpClient();
         adapter = getAdapter();
         listView = (ListView) findViewById(android.R.id.list);
-        listView.setAdapter(adapter);
+        if(listView != null) {
+            listView.setAdapter(adapter);
+        }
         prefs = this.getSharedPreferences(CommonConstants.PREFS, Context.MODE_PRIVATE);
 
         emptyView = (TextView) findViewById(android.R.id.empty);
@@ -81,12 +81,12 @@ public class SearchActivity extends AppCompatActivity {
         super.onResume();
 
     }
-    public void refresh() {
+    private void refresh() {
         if(query != null) {
             loadListings(query, 1, true);
         }
     }
-    public void refill() {
+    private void refill() {
         if(myListings != null && myListings.size() == 0) {
             emptyView.setVisibility(View.VISIBLE);
 
@@ -102,7 +102,7 @@ public class SearchActivity extends AppCompatActivity {
         }
     }
     // Append more data into the adapter
-    public void loadMoreDataFromApi(int offset) {
+    private void loadMoreDataFromApi(int offset) {
         Timber.d("load more");
         loadListings(this.query, offset, false);
 
@@ -165,16 +165,15 @@ public class SearchActivity extends AppCompatActivity {
         }
     }
 
-    public void loadListings(final String query, final int page, final boolean clear) {
+    private void loadListings(final String query, final int page, final boolean clear) {
         new Thread()
         {
             public void run() {
                 try {
-                    String API_KEY = "liwecjs0c3ssk6let4p1wqt9";
                     String minPriceString = prefs.getString(CommonConstants.MIN_PRICE, "");
                     String maxPriceString = prefs.getString(CommonConstants.MAX_PRICE, "");
 
-                    String url = "https://api.etsy.com/v2/listings/active?api_key=" + API_KEY +
+                    String url = "https://api.etsy.com/v2/listings/active?api_key=" + CommonConstants.API_KEY +
                             "&includes=MainImage&page=" + page + "&keywords=" + query;
                     if(!minPriceString.equals("")) {
                         url +="&min_price=" + minPriceString;
@@ -190,14 +189,17 @@ public class SearchActivity extends AppCompatActivity {
                    myListings = new ArrayList<Listing>();
                }
             for (int i = 0; i < results.length(); i++) {
+
                 JSONObject row = results.getJSONObject(i);
-                String title = row.getString("title");
-                String price = row.getString("price");
-                String description = row.getString("description");
-                JSONObject mainImage = row.getJSONObject("MainImage");
-                String image = mainImage.getString("url_fullxfull");
-                Listing myListing = new Listing(title, image, description, price);
-                myListings.add(myListing);
+                if(row.has("title")) {
+                    String title = row.getString("title");
+                    String price = row.getString("price");
+                    String description = row.getString("description");
+                    JSONObject mainImage = row.getJSONObject("MainImage");
+                    String image = mainImage.getString("url_fullxfull");
+                    Listing myListing = new Listing(title, image, description, price);
+                    myListings.add(myListing);
+                }
             }
 
                     runOnUiThread(new Runnable() {
@@ -214,22 +216,18 @@ public class SearchActivity extends AppCompatActivity {
 
 
                     Timber.d("done");
-                } catch (IOException e) {
+                } catch (IOException | JSONException e) {
                     Timber.e("exception", e);
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    Timber.e("exception", e);
-
                     e.printStackTrace();
                 }
 
-                    }
+            }
 
         }.start();
 
 
     }
-    String run(String url) throws IOException {
+    private String run(String url) throws IOException {
         Request request = new Request.Builder()
                 .url(url)
                 .build();
@@ -238,9 +236,9 @@ public class SearchActivity extends AppCompatActivity {
         return response.body().string();
     }
 
-    public ListingAdapter getAdapter() {
+    private ListingAdapter getAdapter() {
         if(adapter == null) {
-            adapter = new ListingAdapter(SearchActivity.this, R.layout.row, myListings);
+            adapter = new ListingAdapter(SearchActivity.this, myListings);
         }
 
         return adapter;
