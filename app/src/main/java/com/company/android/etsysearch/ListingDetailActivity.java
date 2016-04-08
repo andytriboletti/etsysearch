@@ -18,7 +18,7 @@ import butterknife.ButterKnife;
 import timber.log.Timber;
 
 
-public class ListingDetail extends AppCompatActivity {
+public class ListingDetailActivity extends AppCompatActivity {
     @Bind(R.id.titleTextView)
 
     TextView titleTextView;

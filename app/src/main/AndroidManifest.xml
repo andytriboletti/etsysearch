@@ -13,13 +13,13 @@
         android:name=".App">
 
         <activity
-            android:name="com.company.android.etsysearch.ListingDetail"
+            android:name=".ListingDetailActivity"
             android:label="@string/app_name" >
         </activity>
 
 
         <activity
-            android:name="com.company.android.etsysearch.SearchFilter"
+            android:name=".SearchFilterActivity"
             android:label="@string/app_name" >
         </activity>
 

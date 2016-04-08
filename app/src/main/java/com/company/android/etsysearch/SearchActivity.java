@@ -5,13 +5,18 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.company.android.etsysearch.thirdparty.EndlessRecyclerOnScrollListener;
+import com.company.android.etsysearch.thirdparty.RecyclerViewEmptySupport;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,6 +41,9 @@ public class SearchActivity extends AppCompatActivity {
     private static final String LISTINGS = "listings";
     private SharedPreferences prefs;
     private static final int SEARCH_FILTER_CODE = 1;  // The request code
+    private RecyclerViewEmptySupport recyclerView;
+    private MyOnClickListener myOnClickListener;
+    private LinearLayoutManager linearLayoutManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,38 +51,40 @@ public class SearchActivity extends AppCompatActivity {
         setContentView(R.layout.activity_search);
         client = new OkHttpClient();
         adapter = getAdapter();
-        listView = (ListView) findViewById(android.R.id.list);
-        if(listView != null) {
-            listView.setAdapter(adapter);
-        }
+        myOnClickListener = new MyOnClickListener();
+
+        recyclerView = (RecyclerViewEmptySupport) findViewById(R.id.recycler_view);
+
+        adapter = new ListingAdapter(myListings, this);
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+        recyclerView.setLayoutManager(mLayoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.setAdapter(adapter);
+
         prefs = this.getSharedPreferences(CommonConstants.PREFS, Context.MODE_PRIVATE);
 
         emptyView = (TextView) findViewById(android.R.id.empty);
-        listView.setEmptyView(emptyView);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        recyclerView.setEmptyView(emptyView);
+
+
+        linearLayoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(linearLayoutManager);
+
+        recyclerView.setOnScrollListener(new EndlessRecyclerOnScrollListener(linearLayoutManager) {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int i, long id) {
-                Timber.d("clicked " + i);
-                Listing thisListing = myListings.get(i);
-                Timber.d("going to item: " + thisListing.getTitle());
-                App.currentListing = thisListing;
-                Intent intent = new Intent(SearchActivity.this, ListingDetail.class);
-                startActivity(intent);
-
-            }
-
-        });
-
-        listView.setOnScrollListener(new EndlessScrollListener() {
-            @Override
-            public boolean onLoadMore(int page, int totalItemsCount) {
+            public void onLoadMore(int page) {
                 loadMoreDataFromApi(page);
-                return true;
+
             }
         });
+
+        refill();
 
 
     }
+
+
+
 
     @Override
     public void onResume() {
@@ -122,9 +132,8 @@ public class SearchActivity extends AppCompatActivity {
             public boolean onQueryTextSubmit(String query) {
                 Timber.d(query);
                 setTitle(query);
-                //adapter=null;
                 SearchActivity.this.query=query;
-                listView.setSelectionAfterHeaderView();
+                linearLayoutManager.scrollToPositionWithOffset(0, 0);
                 loadListings(query, 1, true);
                 if( ! searchView.isIconified()) {
 
@@ -146,7 +155,7 @@ public class SearchActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_filter) {
-            Intent intent = new Intent(SearchActivity.this, SearchFilter.class);
+            Intent intent = new Intent(SearchActivity.this, SearchFilterActivity.class);
             startActivityForResult(intent, SEARCH_FILTER_CODE);
 
             return true;
@@ -238,7 +247,7 @@ public class SearchActivity extends AppCompatActivity {
 
     private ListingAdapter getAdapter() {
         if(adapter == null) {
-            adapter = new ListingAdapter(SearchActivity.this, myListings);
+            adapter = new ListingAdapter(myListings, SearchActivity.this);
         }
 
         return adapter;
@@ -259,6 +268,23 @@ public class SearchActivity extends AppCompatActivity {
 
     }
 
+    public MyOnClickListener getClickListener() {
+        return myOnClickListener;
+    }
+    public class MyOnClickListener implements View.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            int i = recyclerView.getChildPosition(v);
+            Timber.d("Clicked and Position is ",String.valueOf(i));
+
+            Timber.d("clicked " + i);
+            Listing thisListing = myListings.get(i);
+            Timber.d("going to item: " + thisListing.getTitle());
+            App.currentListing = thisListing;
+            Intent intent = new Intent(SearchActivity.this, ListingDetailActivity.class);
+            startActivity(intent);
+        }
+    }
 
 }
 

@@ -14,7 +14,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class SearchFilter extends AppCompatActivity  {
+public class SearchFilterActivity extends AppCompatActivity  {
     @Bind(R.id.minPrice)
     EditText minPrice;
     @Bind(R.id.maxPrice)
