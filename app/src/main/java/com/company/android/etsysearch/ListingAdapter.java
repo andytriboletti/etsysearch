@@ -1,5 +1,6 @@
 package com.company.android.etsysearch;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,7 +16,7 @@ import java.util.List;
 
 public class ListingAdapter extends RecyclerView.Adapter<ListingAdapter.MyViewHolder> {
     private List<Listing> items;
-    private SearchActivity context;
+    private ListingInterface context;
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView title, price;
@@ -29,7 +30,7 @@ public class ListingAdapter extends RecyclerView.Adapter<ListingAdapter.MyViewHo
         }
     }
 
-    public ListingAdapter(List<Listing> itemsList, SearchActivity context) {
+    public ListingAdapter(List<Listing> itemsList, ListingInterface context) {
         this.items = itemsList;
         this.context = context;
     }
@@ -51,7 +52,7 @@ public class ListingAdapter extends RecyclerView.Adapter<ListingAdapter.MyViewHo
         Listing listing = items.get(position);
         holder.title.setText(listing.getTitle());
         holder.price.setText(listing.getPrice());
-        Picasso.with(context).load(listing.getImage()).into(holder.imageView);
+        Picasso.with(((SearchFragment)context).getActivity()).load(listing.getImage()).into(holder.imageView);
 
     }
 

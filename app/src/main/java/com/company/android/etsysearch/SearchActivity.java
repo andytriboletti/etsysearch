@@ -3,31 +3,23 @@ package com.company.android.etsysearch;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.company.android.etsysearch.thirdparty.EndlessRecyclerOnScrollListener;
 import com.company.android.etsysearch.thirdparty.RecyclerViewEmptySupport;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.ArrayList;
 
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+
 import timber.log.Timber;
 
 public class SearchActivity extends AppCompatActivity {
@@ -42,44 +34,21 @@ public class SearchActivity extends AppCompatActivity {
     private SharedPreferences prefs;
     private static final int SEARCH_FILTER_CODE = 1;  // The request code
     private RecyclerViewEmptySupport recyclerView;
-    private MyOnClickListener myOnClickListener;
+    //private MyOnClickListener myOnClickListener;
     private LinearLayoutManager linearLayoutManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_search);
-        client = new OkHttpClient();
-        adapter = getAdapter();
-        myOnClickListener = new MyOnClickListener();
-
-        recyclerView = (RecyclerViewEmptySupport) findViewById(R.id.recycler_view);
-
-        adapter = new ListingAdapter(myListings, this);
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
-        recyclerView.setLayoutManager(mLayoutManager);
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
-        recyclerView.setAdapter(adapter);
-
-        prefs = this.getSharedPreferences(CommonConstants.PREFS, Context.MODE_PRIVATE);
-
-        emptyView = (TextView) findViewById(android.R.id.empty);
-        recyclerView.setEmptyView(emptyView);
-
+        setContentView(R.layout.activity_content_main);
+        if(savedInstanceState == null) {
+            SearchFragment fragment = new SearchFragment();
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment, fragment)
+                    .commit();
+        }
 
         linearLayoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(linearLayoutManager);
-
-        recyclerView.setOnScrollListener(new EndlessRecyclerOnScrollListener(linearLayoutManager) {
-            @Override
-            public void onLoadMore(int page) {
-                loadMoreDataFromApi(page);
-
-            }
-        });
-
-        refill();
-
 
     }
 
@@ -93,30 +62,12 @@ public class SearchActivity extends AppCompatActivity {
     }
     private void refresh() {
         if(query != null) {
-            loadListings(query, 1, true);
+            SearchFragment currentFragment = (SearchFragment)getSupportFragmentManager().findFragmentById(R.id.fragment);
+
+            currentFragment.loadListings(query, 1, true);
         }
     }
-    private void refill() {
-        if(myListings != null && myListings.size() == 0) {
-            emptyView.setVisibility(View.VISIBLE);
 
-        }
-        else {
-            emptyView.setVisibility(View.GONE);
-            adapter.refill(myListings);
-            adapter.notifyDataSetChanged();
-        }
-
-        if(query != null) {
-            setTitle(query);
-        }
-    }
-    // Append more data into the adapter
-    private void loadMoreDataFromApi(int offset) {
-        Timber.d("load more");
-        loadListings(this.query, offset, false);
-
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -134,7 +85,10 @@ public class SearchActivity extends AppCompatActivity {
                 setTitle(query);
                 SearchActivity.this.query=query;
                 linearLayoutManager.scrollToPositionWithOffset(0, 0);
-                loadListings(query, 1, true);
+                SearchFragment currentFragment = (SearchFragment)getSupportFragmentManager().findFragmentById(R.id.fragment);
+
+
+                currentFragment.loadListings(query, 1, true);
                 if( ! searchView.isIconified()) {
 
                     searchView.setIconified(true);
@@ -174,117 +128,13 @@ public class SearchActivity extends AppCompatActivity {
         }
     }
 
-    private void loadListings(final String query, final int page, final boolean clear) {
-        new Thread()
-        {
-            public void run() {
-                try {
-                    String minPriceString = prefs.getString(CommonConstants.MIN_PRICE, "");
-                    String maxPriceString = prefs.getString(CommonConstants.MAX_PRICE, "");
-
-                    String url = "https://api.etsy.com/v2/listings/active?api_key=" + CommonConstants.API_KEY +
-                            "&includes=MainImage&page=" + page + "&keywords=" + query;
-                    if(!minPriceString.equals("")) {
-                        url +="&min_price=" + minPriceString;
-                    }
-                    if(!maxPriceString.equals("")) {
-                        url+="&max_price=" + maxPriceString;
-                    }
-                    String response = SearchActivity.this.run(url);
-                    Timber.d(response);
-                    JSONObject jsonObject = new JSONObject(response);
-                    JSONArray results = jsonObject.getJSONArray("results");
-               if(clear) {
-                   myListings = new ArrayList<Listing>();
-               }
-            for (int i = 0; i < results.length(); i++) {
-
-                JSONObject row = results.getJSONObject(i);
-                if(row.has("title")) {
-                    String title = row.getString("title");
-                    String price = row.getString("price");
-                    String description = row.getString("description");
-                    JSONObject mainImage = row.getJSONObject("MainImage");
-                    String image = mainImage.getString("url_fullxfull");
-                    Listing myListing = new Listing(title, image, description, price);
-                    myListings.add(myListing);
-                }
-            }
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            emptyView.setVisibility(View.GONE);
-
-                            adapter.refill(myListings);
-                            adapter.notifyDataSetChanged();
-
-
-                        }
-                    });
-
-
-                    Timber.d("done");
-                } catch (IOException | JSONException e) {
-                    Timber.e("exception", e);
-                    e.printStackTrace();
-                }
-
-            }
-
-        }.start();
-
-
-    }
-    private String run(String url) throws IOException {
-        Request request = new Request.Builder()
-                .url(url)
-                .build();
-
-        Response response = client.newCall(request).execute();
-        return response.body().string();
-    }
-
-    private ListingAdapter getAdapter() {
-        if(adapter == null) {
-            adapter = new ListingAdapter(myListings, SearchActivity.this);
-        }
-
-        return adapter;
-    }
-
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(QUERY, this.query);
         outState.putParcelableArrayList(LISTINGS, myListings);
 
     }
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        this.query = savedInstanceState.getString(QUERY);
-        this.myListings = savedInstanceState.getParcelableArrayList(LISTINGS);
 
-        refill();
-
-    }
-
-    public MyOnClickListener getClickListener() {
-        return myOnClickListener;
-    }
-    public class MyOnClickListener implements View.OnClickListener {
-        @Override
-        public void onClick(View v) {
-            int i = recyclerView.getChildPosition(v);
-            Timber.d("Clicked and Position is ",String.valueOf(i));
-
-            Timber.d("clicked " + i);
-            Listing thisListing = myListings.get(i);
-            Timber.d("going to item: " + thisListing.getTitle());
-            App.currentListing = thisListing;
-            Intent intent = new Intent(SearchActivity.this, ListingDetailActivity.class);
-            startActivity(intent);
-        }
-    }
 
 }
 
